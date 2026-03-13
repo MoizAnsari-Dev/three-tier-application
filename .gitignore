@@ -32,5 +32,6 @@ Thumbs.db
 # Docker
 *.tar
 
-# Text files
+# Text files    
 *.txt
+ 
