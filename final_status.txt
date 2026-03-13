@@ -1,7 +1,0 @@
-NAMES                       STATUS                             PORTS
-ai-task-frontend            Up 52 seconds (health: starting)   0.0.0.0:3001->3000/tcp, [::]:3001->3000/tcp
-ai-task-backend             Up 5 minutes (healthy)             0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp
-ai-task-platform-worker-1   Up 2 minutes (healthy)             
-ai-task-platform-worker-2   Up About a minute (healthy)        
-ai-task-redis               Up 9 minutes (healthy)             0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
-ai-task-mongo               Up 9 minutes (healthy)             0.0.0.0:27017->27017/tcp, [::]:27017->27017/tcp
