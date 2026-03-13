@@ -1,0 +1,1 @@
+Error response from daemon: Head "https://registry-1.docker.io/v2/library/node/manifests/20-alpine": unauthorized: incorrect username or password

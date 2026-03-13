@@ -1,0 +1,3 @@
+2026-03-13 05:41:16 [[32minfo[39m]: MongoDB Connected: mongo
+2026-03-13 05:41:16 [[32minfo[39m]: Backend API running on port 5000 [production]
+2026-03-13 05:41:16 [[32minfo[39m]: Redis connected

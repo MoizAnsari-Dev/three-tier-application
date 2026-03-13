@@ -1,0 +1,9 @@
+NAMES               STATUS                          PORTS
+ai-task-backend     Up About a minute (unhealthy)   0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp
+ai-task-redis       Up 2 minutes (healthy)          0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
+ai-task-mongo       Up About a minute (healthy)     0.0.0.0:27017->27017/tcp, [::]:27017->27017/tcp
+mean-nginx          Up 6 days                       0.0.0.0:3000->80/tcp, [::]:3000->80/tcp
+mean-frontend       Up 6 days                       0.0.0.0:32791->80/tcp, [::]:32791->80/tcp
+mean-backend        Up 6 days                       0.0.0.0:32790->8080/tcp, [::]:32790->8080/tcp
+mean-auth-backend   Up 6 days                       0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+postgres-db         Up 6 days                       0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp

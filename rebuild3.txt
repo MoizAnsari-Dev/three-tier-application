@@ -1,0 +1,237 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.50kB done
+#1 DONE 0.0s
+
+#2 [backend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 720B 0.0s done
+#2 DONE 0.1s
+
+#3 [worker internal] load build definition from Dockerfile
+#3 transferring dockerfile: 775B 0.0s done
+#3 DONE 0.2s
+
+#4 [frontend internal] load build definition from Dockerfile
+#4 transferring dockerfile: 1.26kB 0.0s done
+#4 DONE 0.2s
+
+#5 [frontend internal] load metadata for docker.io/library/node:20-alpine
+#5 DONE 0.0s
+
+#6 [backend internal] load .dockerignore
+#6 transferring context: 145B done
+#6 DONE 0.0s
+
+#7 [frontend internal] load .dockerignore
+#7 transferring context: 152B done
+#7 DONE 0.1s
+
+#8 [worker internal] load metadata for docker.io/library/python:3.12-slim
+#8 ...
+
+#9 [frontend builder 1/4] FROM docker.io/library/node:20-alpine
+#9 DONE 0.0s
+
+#10 [backend internal] load build context
+#10 transferring context: 2.19kB done
+#10 DONE 0.0s
+
+#11 [frontend internal] load build context
+#11 transferring context: 4.14kB done
+#11 DONE 0.1s
+
+#12 [backend builder 4/4] RUN npm ci --only=production && npm cache clean --force
+#12 CACHED
+
+#13 [backend runner 2/5] RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#13 CACHED
+
+#14 [backend builder 2/4] WORKDIR /app
+#14 CACHED
+
+#15 [backend builder 3/4] COPY package*.json ./
+#15 CACHED
+
+#16 [backend runner 3/5] WORKDIR /app
+#16 CACHED
+
+#17 [backend runner 4/5] COPY --from=builder /app/node_modules ./node_modules
+#17 CACHED
+
+#18 [backend runner 5/5] COPY --chown=appuser:appgroup . .
+#18 CACHED
+
+#14 [frontend builder 2/4] WORKDIR /app
+#14 CACHED
+
+#19 [frontend builder 3/7] COPY package*.json ./
+#19 CACHED
+
+#20 [frontend builder 4/7] RUN npm ci
+#20 CACHED
+
+#21 [backend] exporting to image
+#21 exporting layers done
+#21 writing image sha256:9899706810d4e4ec2add99ebb373198c3cc74164bc16c61d6ee7f74d3291220e 0.0s done
+#21 naming to docker.io/library/ai-task-platform-backend done
+#21 DONE 0.1s
+
+#22 [frontend builder 5/7] COPY . .
+#22 DONE 0.3s
+
+#8 [worker internal] load metadata for docker.io/library/python:3.12-slim
+#8 ...
+
+#23 [backend] resolving provenance for metadata file
+#23 DONE 0.0s
+
+#24 [frontend builder 6/7] RUN mkdir -p ./public
+#24 ...
+
+#8 [worker internal] load metadata for docker.io/library/python:3.12-slim
+#8 DONE 1.9s
+
+#25 [worker internal] load .dockerignore
+#25 transferring context: 174B done
+#25 DONE 0.0s
+
+#26 [worker builder 1/4] FROM docker.io/library/python:3.12-slim@sha256:ccc7089399c8bb65dd1fb3ed6d55efa538a3f5e7fca3f5988ac3b5b87e593bf0
+#26 DONE 0.0s
+
+#27 [worker internal] load build context
+#27 transferring context: 459B done
+#27 DONE 0.0s
+
+#28 [worker runner 3/5] WORKDIR /app
+#28 CACHED
+
+#29 [worker builder 4/4] RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+#29 CACHED
+
+#30 [worker runner 4/5] COPY --from=builder /install /usr/local
+#30 CACHED
+
+#31 [worker runner 2/5] RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+#31 CACHED
+
+#32 [worker builder 2/4] WORKDIR /app
+#32 CACHED
+
+#33 [worker builder 3/4] COPY requirements.txt .
+#33 CACHED
+
+#34 [worker runner 5/5] COPY --chown=appuser:appgroup . .
+#34 CACHED
+
+#35 [worker] exporting to image
+#35 exporting layers done
+#35 writing image sha256:fb58846a109bb161bf63a37f3b9e8e2be62ee2a669ad0ab5f03d2b8e056b3b88 done
+#35 naming to docker.io/library/ai-task-platform-worker done
+#35 DONE 0.0s
+
+#36 [worker] resolving provenance for metadata file
+#36 DONE 0.0s
+
+#24 [frontend builder 6/7] RUN mkdir -p ./public
+#24 DONE 2.3s
+
+#37 [frontend builder 7/7] RUN npm run build
+#37 0.957 
+#37 0.957 > ai-task-platform-frontend@1.0.0 build
+#37 0.957 > next build
+#37 0.957 
+#37 2.682 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#37 2.683 This information is used to shape Next.js' roadmap and prioritize features.
+#37 2.683 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#37 2.684 https://nextjs.org/telemetry
+#37 2.684 
+#37 2.840   ▲ Next.js 14.2.3
+#37 2.842 
+#37 3.072    Creating an optimized production build ...
+#37 29.12  ✓ Compiled successfully
+#37 29.12    Linting and checking validity of types ...
+#37 33.83 
+#37 33.83 ./app/tasks/[id]/page.js
+#37 33.83 42:37  Warning: React Hook useEffect has a missing dependency: 'fetchTask'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+#37 33.83 51:6  Warning: React Hook useEffect has missing dependencies: 'fetchTask' and 'task'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+#37 33.83 
+#37 33.83 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+#37 33.84    Collecting page data ...
+#37 37.07    Generating static pages (0/8) ...
+#37 38.00    Generating static pages (2/8) 
+#37 38.00    Generating static pages (4/8) 
+#37 38.01    Generating static pages (6/8) 
+#37 38.21  ✓ Generating static pages (8/8)
+#37 38.77    Finalizing page optimization ...
+#37 38.77    Collecting build traces ...
+#37 61.25 
+#37 61.25 Route (app)                              Size     First Load JS
+#37 61.25 ┌ ○ /                                    1.42 kB        95.8 kB
+#37 61.25 ├ ○ /_not-found                          871 B          87.9 kB
+#37 61.25 ├ ○ /dashboard                           3.47 kB         127 kB
+#37 61.25 ├ ○ /login                               1.55 kB         123 kB
+#37 61.25 ├ ○ /register                            1.75 kB         123 kB
+#37 61.25 ├ ƒ /tasks/[id]                          6.04 kB         130 kB
+#37 61.25 └ ○ /tasks/new                           2.49 kB         123 kB
+#37 61.25 + First Load JS shared by all            87 kB
+#37 61.25   ├ chunks/23-30b4b177dfabe4d9.js        31.5 kB
+#37 61.25   ├ chunks/fd9d1056-a80447464fc7b0c1.js  53.6 kB
+#37 61.25   └ other shared chunks (total)          1.96 kB
+#37 61.25 
+#37 61.25 
+#37 61.25 ○  (Static)   prerendered as static content
+#37 61.25 ƒ  (Dynamic)  server-rendered on demand
+#37 61.25 
+#37 DONE 61.8s
+
+#13 [frontend runner 2/5] RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#13 CACHED
+
+#16 [frontend runner 3/5] WORKDIR /app
+#16 CACHED
+
+#38 [frontend runner 4/7] COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
+#38 DONE 0.9s
+
+#39 [frontend runner 5/7] COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
+#39 DONE 0.2s
+
+#40 [frontend runner 6/7] COPY --from=builder --chown=appuser:appgroup /app/public ./public
+#40 DONE 0.1s
+
+#41 [frontend runner 7/7] RUN mkdir -p ./.next/static
+#41 DONE 0.5s
+
+#42 [frontend] exporting to image
+#42 exporting layers
+#42 exporting layers 0.7s done
+#42 writing image sha256:dc733329f184094ee7110982bedf7c52d3dfee854274d57c45c4c4f4b91eb579 done
+#42 naming to docker.io/library/ai-task-platform-frontend done
+#42 DONE 0.7s
+
+#43 [frontend] resolving provenance for metadata file
+#43 DONE 0.0s
+ ai-task-platform-backend  Built
+ ai-task-platform-worker  Built
+ ai-task-platform-frontend  Built
+ Network ai-task-platform_app-network  Creating
+ Network ai-task-platform_app-network  Created
+ Volume "ai-task-platform_mongo-data"  Creating
+ Volume "ai-task-platform_mongo-data"  Created
+ Volume "ai-task-platform_redis-data"  Creating
+ Volume "ai-task-platform_redis-data"  Created
+ Container ai-task-redis  Creating
+ Container ai-task-mongo  Creating
+ Container ai-task-redis  Created
+ Container ai-task-mongo  Created
+ Container ai-task-backend  Creating
+ Container ai-task-backend  Created
+ Container ai-task-frontend  Creating
+ Container ai-task-platform-worker-2  Creating
+ Container ai-task-platform-worker-1  Creating
+ Container ai-task-platform-worker-2  Created
+ Container ai-task-platform-worker-1  Created
+ Container ai-task-frontend  Created
+ Container ai-task-mongo  Starting
+ Container ai-task-redis  Starting
+ Container ai-task-redis  Started
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint ai-task-mongo (5a9e0d8b5e4250ba87d8df7c0bbc45e55048b0cac97f16d247f0d26a3d690ba0): Bind for 0.0.0.0:27017 failed: port is already allocated

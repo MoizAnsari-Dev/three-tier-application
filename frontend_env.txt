@@ -1,0 +1,8 @@
+NEXT_PUBLIC_API_URL=http://localhost:5000
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NODE_VERSION=20.20.1
+YARN_VERSION=1.22.22
+NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+

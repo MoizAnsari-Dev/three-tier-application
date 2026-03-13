@@ -1,0 +1,75 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 557B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 781B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:20-alpine
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 145B done
+#4 DONE 0.0s
+
+#5 [builder 1/4] FROM docker.io/library/node:20-alpine
+#5 DONE 0.0s
+
+#6 [runner 2/6] RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#6 CACHED
+
+#7 [internal] load build context
+#7 transferring context: 2.88kB done
+#7 DONE 0.0s
+
+#8 [runner 3/6] RUN apk add --no-cache wget
+#8 ...
+
+#9 [builder 2/4] WORKDIR /app
+#9 CACHED
+
+#10 [builder 3/4] COPY package*.json ./
+#10 CACHED
+
+#11 [builder 4/4] RUN npm ci --only=production && npm cache clean --force
+#11 CACHED
+
+#8 [runner 3/6] RUN apk add --no-cache wget
+#8 3.271 (1/4) Installing libunistring (1.4.1-r0)
+#8 3.376 (2/4) Installing libidn2 (2.3.8-r0)
+#8 3.403 (3/4) Installing pcre2 (10.47-r0)
+#8 3.485 (4/4) Installing wget (1.25.0-r2)
+#8 3.539 Executing busybox-1.37.0-r30.trigger
+#8 3.566 OK: 14.0 MiB in 22 packages
+#8 DONE 4.1s
+
+#12 [runner 4/6] WORKDIR /app
+#12 DONE 0.1s
+
+#13 [runner 5/6] COPY --from=builder /app/node_modules ./node_modules
+#13 DONE 1.8s
+
+#14 [runner 6/6] COPY --chown=appuser:appgroup . .
+#14 DONE 0.2s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 1.0s done
+#15 writing image sha256:cb2e5c436749157b8eab8d0f79908a1603765851f457818abfcc8fa988a52f34 done
+#15 naming to docker.io/library/ai-task-platform-backend done
+#15 DONE 1.1s
+
+#16 resolving provenance for metadata file
+#16 DONE 0.0s
+ ai-task-platform-backend  Built
+ Container ai-task-mongo  Running
+ Container ai-task-redis  Running
+ Container ai-task-backend  Recreate
+ Container ai-task-backend  Recreated
+ Container ai-task-redis  Waiting
+ Container ai-task-mongo  Waiting
+ Container ai-task-redis  Healthy
+ Container ai-task-mongo  Healthy
+ Container ai-task-backend  Starting
+ Container ai-task-backend  Started

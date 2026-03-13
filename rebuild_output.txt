@@ -1,0 +1,186 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.50kB done
+#1 DONE 0.0s
+
+#2 [worker internal] load build definition from Dockerfile
+#2 transferring dockerfile: 775B done
+#2 DONE 0.0s
+
+#3 [frontend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.16kB done
+#3 DONE 0.1s
+
+#4 [backend internal] load build definition from Dockerfile
+#4 transferring dockerfile: 720B done
+#4 DONE 0.1s
+
+#5 [backend internal] load metadata for docker.io/library/node:20-alpine
+#5 DONE 0.0s
+
+#6 [frontend internal] load .dockerignore
+#6 transferring context: 152B done
+#6 DONE 0.0s
+
+#7 [backend internal] load .dockerignore
+#7 transferring context: 145B done
+#7 DONE 0.0s
+
+#8 [backend builder 1/6] FROM docker.io/library/node:20-alpine
+#8 DONE 0.0s
+
+#9 [backend runner 2/6] RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#9 CACHED
+
+#10 [frontend runner 3/6] WORKDIR /app
+#10 CACHED
+
+#11 [frontend internal] load build context
+#11 transferring context: 2.99kB done
+#11 DONE 0.0s
+
+#12 [backend internal] load build context
+#12 transferring context: 2.19kB done
+#12 DONE 0.0s
+
+#13 [frontend builder 3/6] COPY package*.json ./
+#13 CACHED
+
+#14 [frontend builder 4/6] RUN npm ci
+#14 CACHED
+
+#15 [backend runner 4/5] COPY --from=builder /app/node_modules ./node_modules
+#15 CACHED
+
+#16 [backend builder 4/4] RUN npm ci --only=production && npm cache clean --force
+#16 CACHED
+
+#17 [backend builder 2/6] WORKDIR /app
+#17 CACHED
+
+#18 [backend builder 3/4] COPY package*.json ./
+#18 CACHED
+
+#19 [backend runner 5/5] COPY --chown=appuser:appgroup . .
+#19 CACHED
+
+#20 [backend] exporting to image
+#20 exporting layers done
+#20 writing image sha256:cb9d03c63f79a5730f2c4cb4b97ce87f985a3d56e3c4d1863beb20d4e3bb8b3b done
+#20 naming to docker.io/library/ai-task-platform-backend
+#20 naming to docker.io/library/ai-task-platform-backend done
+#20 DONE 0.0s
+
+#21 [frontend builder 5/6] COPY . .
+#21 DONE 0.2s
+
+#22 [worker internal] load metadata for docker.io/library/python:3.12-slim
+#22 ...
+
+#23 [backend] resolving provenance for metadata file
+#23 DONE 0.0s
+
+#24 [frontend builder 6/6] RUN npm run build
+#24 0.556 
+#24 0.556 > ai-task-platform-frontend@1.0.0 build
+#24 0.556 > next build
+#24 0.556 
+#24 ...
+
+#22 [worker internal] load metadata for docker.io/library/python:3.12-slim
+#22 DONE 0.9s
+
+#25 [worker internal] load .dockerignore
+#25 transferring context: 174B done
+#25 DONE 0.0s
+
+#26 [worker builder 1/4] FROM docker.io/library/python:3.12-slim@sha256:ccc7089399c8bb65dd1fb3ed6d55efa538a3f5e7fca3f5988ac3b5b87e593bf0
+#26 DONE 0.0s
+
+#27 [worker internal] load build context
+#27 transferring context: 459B done
+#27 DONE 0.0s
+
+#28 [worker runner 4/5] COPY --from=builder /install /usr/local
+#28 CACHED
+
+#29 [worker builder 3/4] COPY requirements.txt .
+#29 CACHED
+
+#30 [worker runner 3/5] WORKDIR /app
+#30 CACHED
+
+#31 [worker builder 2/4] WORKDIR /app
+#31 CACHED
+
+#32 [worker builder 4/4] RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+#32 CACHED
+
+#33 [worker runner 2/5] RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+#33 CACHED
+
+#34 [worker runner 5/5] COPY --chown=appuser:appgroup . .
+#34 CACHED
+
+#35 [worker] exporting to image
+#35 exporting layers done
+#35 writing image sha256:fb58846a109bb161bf63a37f3b9e8e2be62ee2a669ad0ab5f03d2b8e056b3b88 done
+#35 naming to docker.io/library/ai-task-platform-worker done
+#35 DONE 0.0s
+
+#36 [worker] resolving provenance for metadata file
+#36 DONE 0.0s
+
+#24 [frontend builder 6/6] RUN npm run build
+#24 1.781 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#24 1.782 This information is used to shape Next.js' roadmap and prioritize features.
+#24 1.782 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#24 1.782 https://nextjs.org/telemetry
+#24 1.782 
+#24 1.902   ▲ Next.js 14.2.3
+#24 1.902 
+#24 2.084    Creating an optimized production build ...
+#24 39.99  ✓ Compiled successfully
+#24 39.99    Linting and checking validity of types ...
+#24 47.34 
+#24 47.34 Failed to compile.
+#24 47.34 
+#24 47.34 ./app/login/page.js
+#24 47.34 78:14  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+#24 47.34 
+#24 47.34 ./app/tasks/[id]/page.js
+#24 47.34 42:37  Warning: React Hook useEffect has a missing dependency: 'fetchTask'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+#24 47.34 51:6  Warning: React Hook useEffect has missing dependencies: 'fetchTask' and 'task'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+#24 47.34 
+#24 47.34 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+#24 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [frontend builder 6/6] RUN npm run build:
+47.34 Failed to compile.
+47.34 
+47.34 ./app/login/page.js
+47.34 78:14  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+47.34 
+47.34 ./app/tasks/[id]/page.js
+47.34 42:37  Warning: React Hook useEffect has a missing dependency: 'fetchTask'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+47.34 51:6  Warning: React Hook useEffect has missing dependencies: 'fetchTask' and 'task'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+47.34 
+47.34 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+------
+Dockerfile:9
+
+--------------------
+
+   7 |     
+
+   8 |     COPY . .
+
+   9 | >>> RUN npm run build
+
+  10 |     
+
+  11 |     # ── Production Stage ─────────────────────────────────────────
+
+--------------------
+
+target frontend: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
