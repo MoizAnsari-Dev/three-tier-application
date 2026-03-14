@@ -1,4 +1,4 @@
-# 🚀 AI Task Platform — Complete Local Development Guide
+# 🚀 Three-Tier Application — Complete Local Development Guide
 
 > Run the entire platform on your local machine **without Docker or Docker Compose**
 
@@ -113,16 +113,16 @@ redis-cli ping
 
 ```bash
 # If you already have it:
-cd /home/moiz/Music/ai-task-platform
+cd /home/moiz/Music/three-tier-application
 
 # If cloning fresh from GitHub:
-git clone https://github.com/YOUR_USERNAME/ai-task-platform.git
-cd ai-task-platform
+git clone https://github.com/YOUR_USERNAME/three-tier-application.git
+cd three-tier-application
 ```
 
 Your directory structure should look like this:
 ```
-ai-task-platform/
+three-tier-application/
 ├── backend/          ← Node.js + Express API
 ├── worker/           ← Python background worker
 ├── frontend/         ← Next.js 14 UI
@@ -141,7 +141,7 @@ You need `.env` files for each service. Run these commands:
 ### Backend `.env`
 
 ```bash
-cd /home/moiz/Music/ai-task-platform/backend
+cd /home/moiz/Music/three-tier-application/backend
 cp .env.example .env
 ```
 
@@ -153,7 +153,7 @@ NODE_ENV=development
 PORT=5000
 
 # MongoDB — local instance (no auth)
-MONGO_URI=mongodb://localhost:27017/ai-task-platform
+MONGO_URI=mongodb://localhost:27017/three-tier-application
 
 # Redis — local instance
 REDIS_HOST=localhost
@@ -174,7 +174,7 @@ LOG_LEVEL=info
 ### Worker `.env`
 
 ```bash
-cd /home/moiz/Music/ai-task-platform/worker
+cd /home/moiz/Music/three-tier-application/worker
 cp .env.example .env
 ```
 
@@ -182,7 +182,7 @@ Open `worker/.env` and set:
 
 ```env
 # ── worker/.env ───────────────────────────────────
-MONGO_URI=mongodb://localhost:27017/ai-task-platform
+MONGO_URI=mongodb://localhost:27017/three-tier-application
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
@@ -192,7 +192,7 @@ LOG_LEVEL=INFO
 ### Frontend `.env.local`
 
 ```bash
-cd /home/moiz/Music/ai-task-platform/frontend
+cd /home/moiz/Music/three-tier-application/frontend
 ```
 
 Create a new file `frontend/.env.local` with:
@@ -247,7 +247,7 @@ redis-cli ping
 Open a **new terminal window/tab**:
 
 ```bash
-cd /home/moiz/Music/ai-task-platform/backend
+cd /home/moiz/Music/three-tier-application/backend
 
 # Install dependencies (first time only)
 npm install
@@ -281,7 +281,7 @@ curl http://localhost:5000/health
 Open a **new terminal window/tab**:
 
 ```bash
-cd /home/moiz/Music/ai-task-platform/worker
+cd /home/moiz/Music/three-tier-application/worker
 
 # Install Python dependencies (first time only)
 pip3 install -r requirements.txt
@@ -309,7 +309,7 @@ python3 -u worker.py
 Open a **new terminal window/tab**:
 
 ```bash
-cd /home/moiz/Music/ai-task-platform/frontend
+cd /home/moiz/Music/three-tier-application/frontend
 
 # Install dependencies (first time only)
 npm install
@@ -458,7 +458,7 @@ PORT=3001 npm run dev
 ### ❌ `Module not found: Can't resolve '@/lib/api'`
 ```bash
 # Make sure jsconfig.json exists in the frontend folder
-ls /home/moiz/Music/ai-task-platform/frontend/jsconfig.json
+ls /home/moiz/Music/three-tier-application/frontend/jsconfig.json
 # If missing, create it:
 echo '{"compilerOptions":{"baseUrl":".","paths":{"@/*":["./*"]}}}' > jsconfig.json
 ```
@@ -493,7 +493,7 @@ Stop each service by pressing **Ctrl+C** in its terminal window.
 Or use the stop script to kill everything at once:
 
 ```bash
-bash /home/moiz/Music/ai-task-platform/dev-stop.sh
+bash /home/moiz/Music/three-tier-application/dev-stop.sh
 ```
 
 Stop the infrastructure:
@@ -513,23 +513,23 @@ sudo systemctl start mongod          # Start MongoDB
 sudo systemctl start redis-server    # Start Redis
 
 # ── Backend (Terminal 1) ─────────────────────────────────
-cd /home/moiz/Music/ai-task-platform/backend
+cd /home/moiz/Music/three-tier-application/backend
 npm install && npm run dev           # Runs on port 5000
 
 # ── Python Worker (Terminal 2) ───────────────────────────
-cd /home/moiz/Music/ai-task-platform/worker
+cd /home/moiz/Music/three-tier-application/worker
 pip3 install -r requirements.txt
 python3 -u worker.py
 
 # ── Frontend (Terminal 3) ────────────────────────────────
-cd /home/moiz/Music/ai-task-platform/frontend
+cd /home/moiz/Music/three-tier-application/frontend
 npm install && npm run dev           # Runs on port 3000
 
 # ── OR use the one-command script ────────────────────────
-bash /home/moiz/Music/ai-task-platform/dev-start.sh
+bash /home/moiz/Music/three-tier-application/dev-start.sh
 
 # ── Stop everything ──────────────────────────────────────
-bash /home/moiz/Music/ai-task-platform/dev-stop.sh
+bash /home/moiz/Music/three-tier-application/dev-stop.sh
 ```
 
 ---

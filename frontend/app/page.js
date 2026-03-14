@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <main className="hero">
       <div className="hero-badge">
-        <span>⚡</span> Production-Ready AI Task Platform
+        <span>⚡</span> Production-Ready Three-Tier Application
       </div>
 
       <h1 className="hero-title">

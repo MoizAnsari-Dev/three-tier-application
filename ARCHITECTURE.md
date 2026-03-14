@@ -1,4 +1,4 @@
-# Architecture Document — AI Task Processing Platform
+# Architecture Document — Three-Tier Application
 
 ## 1. System Overview
 
@@ -50,7 +50,7 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: worker-scaledobject
-  namespace: ai-task-platform
+  namespace: three-tier-application
 spec:
   scaleTargetRef:
     name: worker
@@ -180,7 +180,7 @@ Allows manual inspection and reprocessing.
 ### Repository Strategy: Two Environments, One Infra Repo
 
 ```
-ai-task-platform-infra/
+three-tier-application-infra/
 ├── k8s/
 │   ├── overlays/
 │   │   ├── staging/
@@ -199,7 +199,7 @@ ai-task-platform-infra/
 
 | Setting | Staging | Production |
 |---------|---------|-----------|
-| Namespace | `ai-task-staging` | `ai-task-platform` |
+| Namespace | `three-tier-staging` | `three-tier-application` |
 | Image tag | `sha-<commit>` (branch: staging) | `sha-<commit>` (branch: main) |
 | Replicas (backend) | 1 | 2+ |
 | Replicas (worker) | 1 | 2–20 (HPA) |

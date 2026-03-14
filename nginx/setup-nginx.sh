@@ -8,7 +8,7 @@
 set -e
 
 CONF_SRC="$(cd "$(dirname "$0")" && pwd)/nginx.conf"
-CONF_DEST="/etc/nginx/sites-available/ai-task-platform"
+CONF_DEST="/etc/nginx/sites-available/three-tier-application"
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
 ok()  { echo -e "${GREEN}  ✓${NC} $*"; }
@@ -31,7 +31,7 @@ echo -e "\n Enabling site..."
 sudo rm -f /etc/nginx/sites-enabled/default
 
 # Create symlink to enable our site
-sudo ln -sf "$CONF_DEST" /etc/nginx/sites-enabled/ai-task-platform
+sudo ln -sf "$CONF_DEST" /etc/nginx/sites-enabled/three-tier-application
 ok "Site enabled"
 
 # ── 4. Test config ────────────────────────────
@@ -54,8 +54,8 @@ echo "  🌐  App URL     → http://$(hostname -I | awk '{print $1}')"
 echo "  🔍  Health      → http://$(hostname -I | awk '{print $1}')/health"
 echo ""
 echo "  📋  Logs:"
-echo "    sudo tail -f /var/log/nginx/ai-task-access.log"
-echo "    sudo tail -f /var/log/nginx/ai-task-error.log"
+echo "    sudo tail -f /var/log/nginx/three-tier-access.log"
+echo "    sudo tail -f /var/log/nginx/three-tier-error.log"
 echo ""
 echo "  🔒  For HTTPS, run:"
 echo "    sudo apt install -y certbot python3-certbot-nginx"

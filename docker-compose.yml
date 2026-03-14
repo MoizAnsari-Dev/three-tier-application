@@ -1,21 +1,14 @@
 
 
-networks:
-  app-network:
-    driver: bridge
-
-volumes:
-  mongo-data:
-  redis-data:
 
 services:
   # ── MongoDB ──────────────────────────────────────────────────
   mongo:
     image: mongo:7.0-jammy
-    container_name: ai-task-mongo
+    container_name: three-tier-mongo
     restart: unless-stopped
     environment:
-      MONGO_INITDB_DATABASE: ai-task-platform
+      MONGO_INITDB_DATABASE: three-tier-application
     volumes:
       - mongo-data:/data/db
     ports:
@@ -32,7 +25,7 @@ services:
   # ── Redis ────────────────────────────────────────────────────
   redis:
     image: redis:7.2-alpine
-    container_name: ai-task-redis
+    container_name: three-tier-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
@@ -53,12 +46,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ai-task-backend
+    container_name: three-tier-backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 5000
-      MONGO_URI: mongodb://mongo:27017/ai-task-platform
+      MONGO_URI: mongodb://mongo:27017/three-tier-application
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-supersecretjwt_changeme_in_prod_32chars}
@@ -89,7 +82,7 @@ services:
 
     restart: unless-stopped
     environment:
-      MONGO_URI: mongodb://mongo:27017/ai-task-platform
+      MONGO_URI: mongodb://mongo:27017/three-tier-application
       REDIS_HOST: redis
       REDIS_PORT: 6379
       LOG_LEVEL: INFO
@@ -110,7 +103,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: ai-task-frontend
+    container_name: three-tier-frontend
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:5000
@@ -127,3 +120,12 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  redis-data:

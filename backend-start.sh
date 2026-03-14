@@ -9,12 +9,11 @@ warn() { echo -e "${YELLOW}  !${NC} $*"; }
 die()  { echo -e "${RED}  ✗ ERROR:${NC} $*"; exit 1; }
 
 # ── 1. Check required tools ───────────────────
-echo -e "\n  Checking requirements..."
-command -v node    >/dev/null || die "Node.js not found  →  https://nodejs.org"
-command -v python3 >/dev/null || die "Python3 not found  →  sudo apt install python3"
-command -v mongod  >/dev/null || die "MongoDB not found  →  sudo apt install mongodb-org"
-command -v redis-cli >/dev/null || die "Redis not found  →  sudo apt install redis-server"
-ok "Node $(node -v) | Python $(python3 --version | cut -d' ' -f2)"
+echo -e "\n  Checking backend requirements..."
+command -v node    >/dev/null || die "Node.js not found"
+command -v python3 >/dev/null || die "Python3 not found"
+command -v mongod  >/dev/null || die "MongoDB not found"
+command -v redis-cli >/dev/null || die "Redis not found"
 
 # ── 2. Start MongoDB ──────────────────────────
 echo -e "\n Starting MongoDB..."
@@ -37,22 +36,18 @@ else
 fi
 
 # ── 4. Install dependencies ───────────────────
-echo -e "\n Installing dependencies..."
+echo -e "\n Installing backend & worker dependencies..."
 
 cd "$ROOT/backend"
 [ ! -f .env ] && cp .env.example .env && warn "Created backend/.env — please review it"
 npm install --silent && ok "Backend packages installed"
 
-cd "$ROOT/frontend"
-[ ! -f .env.local ] && echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > .env.local
-npm install --silent && ok "Frontend packages installed"
-
 cd "$ROOT/worker"
 [ ! -f .env ] && cp .env.example .env && warn "Created worker/.env — please review it"
 pip3 install -q -r requirements.txt && ok "Python packages installed"
 
-# ── 5. Start services in the background ───────
-echo -e "\n Starting services..."
+# ── 5. Start services ─────────────────────────
+echo -e "\n Starting backend & worker..."
 
 cd "$ROOT/backend"
 npm run dev > /tmp/backend.log 2>&1 &
@@ -63,24 +58,11 @@ cd "$ROOT/worker"
 python3 -u worker.py > /tmp/worker.log 2>&1 &
 echo $! > /tmp/worker.pid
 ok "Worker   →  processing tasks in background  (logs: /tmp/worker.log)"
-  
-cd "$ROOT/frontend"
-npm run dev > /tmp/frontend.log 2>&1 &
-echo $! > /tmp/frontend.pid
-ok "Frontend →  http://localhost:3000  (logs: /tmp/frontend.log)"
 
-# ── 6. Done ───────────────────────────────────
-echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  ⚡  AI Task Platform is up and running!     ${NC}"
-echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-echo "    Open in browser  →  http://localhost:3000"
-echo "    API health check →  http://localhost:5000/health"
-echo ""
-echo "    View logs:    tail -f /tmp/backend.log"
-echo "  🛑  Stop services: bash dev-stop.sh"
-echo ""
+echo -e "\n${GREEN}⚡ Backend services are running!${NC}"
+echo "   Logs: tail -f /tmp/backend.log"
+echo "   Stop: bash backend-stop.sh"
 
-# Keep script alive — Ctrl+C will stop all services
-trap "echo ''; echo 'Stopping...'; bash '$ROOT/dev-stop.sh'; exit 0" INT TERM
+# Wait for background processes
+trap "echo ''; echo 'Stopping...'; bash '$ROOT/backend-stop.sh'; exit 0" INT TERM
 wait

@@ -1,4 +1,4 @@
-# 🖥️ AI Task Platform — Bare Metal Linux Server Deployment
+# 🖥️ Three-Tier Application — Bare Metal Linux Server Deployment
 
 > Deploy on a fresh **Ubuntu 22.04 / 24.04** server without Docker
 
@@ -6,15 +6,15 @@
 
 ## 📋 Table of Contents
 
-1. [Server Requirements](#1-server-requirements)
-2. [Initial Server Setup](#2-initial-server-setup)
-3. [Install Node.js 20](#3-install-nodejs-20)
-4. [Install Python 3.12](#4-install-python-312)
-5. [Install & Secure MongoDB](#5-install--secure-mongodb)
-6. [Install & Secure Redis](#6-install--secure-redis)
-7. [Install Nginx](#7-install-nginx)
-8. [Install PM2 (Process Manager)](#8-install-pm2-process-manager)
-9. [Deploy the Application Code](#9-deploy-the-application-code)
+1.  [Server Requirements](#1-server-requirements)
+2.  [Initial Server Setup](#2-initial-server-setup)
+3.  [Install Node.js 20](#3-install-nodejs-20)
+4.  [Install Python 3.12](#4-install-python-312)
+5.  [Install & Secure MongoDB](#5-install--secure-mongodb)
+6.  [Install & Secure Redis](#6-install--secure-redis)
+7.  [Install Nginx](#7-install-nginx)
+8.  [Install PM2 (Process Manager)](#8-install-pm2-process-manager)
+9.  [Deploy the Application Code](#9-deploy-the-application-code)
 10. [Configure Environment Variables](#10-configure-environment-variables)
 11. [Build & Start the Backend](#11-build--start-the-backend)
 12. [Build & Start the Frontend](#12-build--start-the-frontend)
@@ -132,11 +132,11 @@ db.createUser({
   roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
 })
 
-use ai-task-platform
+use three-tier-application
 db.createUser({
   user: "taskapp",
   pwd: "CHANGE_THIS_APP_PASSWORD",
-  roles: [ { role: "readWrite", db: "ai-task-platform" } ]
+  roles: [ { role: "readWrite", db: "three-tier-application" } ]
 })
 
 exit
@@ -163,7 +163,7 @@ sudo systemctl restart mongod
 Test with auth:
 
 ```bash
-mongosh "mongodb://taskapp:CHANGE_THIS_APP_PASSWORD@localhost:27017/ai-task-platform"
+mongosh "mongodb://taskapp:CHANGE_THIS_APP_PASSWORD@localhost:27017/three-tier-application"
 # Should connect without errors
 ```
 
@@ -242,13 +242,13 @@ pm2 startup systemd
 
 ```bash
 # Create the application directory
-sudo mkdir -p /var/www/ai-task-platform
-sudo chown deploy:deploy /var/www/ai-task-platform
+sudo mkdir -p /var/www/three-tier-application
+sudo chown deploy:deploy /var/www/three-tier-application
 
 # Clone the repo (replace with your actual GitHub URL)
-git clone https://github.com/YOUR_USERNAME/ai-task-platform.git /var/www/ai-task-platform
+git clone https://github.com/YOUR_USERNAME/three-tier-application.git /var/www/three-tier-application
 
-cd /var/www/ai-task-platform
+cd /var/www/three-tier-application
 ls
 # backend/   worker/   frontend/   docker-compose.yml   README.md
 ```
@@ -260,7 +260,7 @@ ls
 ### Backend `.env`
 
 ```bash
-nano /var/www/ai-task-platform/backend/.env
+nano /var/www/three-tier-application/backend/.env
 ```
 
 ```env
@@ -268,7 +268,7 @@ NODE_ENV=production
 PORT=5000
 
 # MongoDB — use the app user you created
-MONGO_URI=mongodb://taskapp:CHANGE_THIS_APP_PASSWORD@localhost:27017/ai-task-platform
+MONGO_URI=mongodb://taskapp:CHANGE_THIS_APP_PASSWORD@localhost:27017/three-tier-application
 
 # Redis — use the password you set
 REDIS_HOST=127.0.0.1
@@ -291,11 +291,11 @@ LOG_LEVEL=info
 ### Worker `.env`
 
 ```bash
-nano /var/www/ai-task-platform/worker/.env
+nano /var/www/three-tier-application/worker/.env
 ```
 
 ```env
-MONGO_URI=mongodb://taskapp:CHANGE_THIS_APP_PASSWORD@localhost:27017/ai-task-platform
+MONGO_URI=mongodb://taskapp:CHANGE_THIS_APP_PASSWORD@localhost:27017/three-tier-application
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=CHANGE_THIS_REDIS_PASSWORD
@@ -305,7 +305,7 @@ LOG_LEVEL=INFO
 ### Frontend `.env.production`
 
 ```bash
-nano /var/www/ai-task-platform/frontend/.env.production
+nano /var/www/three-tier-application/frontend/.env.production
 ```
 
 ```env
@@ -319,7 +319,7 @@ NEXT_PUBLIC_API_URL=https://yourdomain.com
 ## 11. Build & Start the Backend
 
 ```bash
-cd /var/www/ai-task-platform/backend
+cd /var/www/three-tier-application/backend
 
 # Install production dependencies only
 npm ci --omit=dev
@@ -345,7 +345,7 @@ Expected output from `pm2 logs backend`:
 ## 12. Build & Start the Frontend
 
 ```bash
-cd /var/www/ai-task-platform/frontend
+cd /var/www/three-tier-application/frontend
 
 # Install all dependencies
 npm ci
@@ -371,27 +371,27 @@ pm2 logs frontend --lines 10
 Using **systemd** for the Python worker gives it automatic restart and proper logging:
 
 ```bash
-sudo nano /etc/systemd/system/ai-task-worker.service
+sudo nano /etc/systemd/system/three-tier-worker.service
 ```
 
 Paste this content:
 
 ```ini
 [Unit]
-Description=AI Task Platform Python Worker
+Description=Three-Tier Application Python Worker
 After=network.target mongod.service redis-server.service
 
 [Service]
 Type=simple
 User=deploy
-WorkingDirectory=/var/www/ai-task-platform/worker
-EnvironmentFile=/var/www/ai-task-platform/worker/.env
+WorkingDirectory=/var/www/three-tier-application/worker
+EnvironmentFile=/var/www/three-tier-application/worker/.env
 ExecStart=/usr/bin/python3 -u worker.py
 Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=ai-task-worker
+SyslogIdentifier=three-tier-worker
 
 [Install]
 WantedBy=multi-user.target
@@ -400,13 +400,13 @@ WantedBy=multi-user.target
 ```bash
 # Enable and start the worker
 sudo systemctl daemon-reload
-sudo systemctl enable --now ai-task-worker
+sudo systemctl enable --now three-tier-worker
 
 # Check worker status
-sudo systemctl status ai-task-worker
+sudo systemctl status three-tier-worker
 
 # View worker logs
-sudo journalctl -u ai-task-worker -f
+sudo journalctl -u three-tier-worker -f
 ```
 
 ---
@@ -416,7 +416,7 @@ sudo journalctl -u ai-task-worker -f
 Nginx will forward all traffic to the right service on the correct port.
 
 ```bash
-sudo nano /etc/nginx/sites-available/ai-task-platform
+sudo nano /etc/nginx/sites-available/three-tier-application
 ```
 
 Paste this configuration:
@@ -506,7 +506,7 @@ server {
 
 ```bash
 # Enable the site
-sudo ln -s /etc/nginx/sites-available/ai-task-platform /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/three-tier-application /etc/nginx/sites-enabled/
 
 # Remove the default Nginx site
 sudo rm -f /etc/nginx/sites-enabled/default
@@ -584,7 +584,7 @@ After certbot runs, your Nginx config will be automatically updated with the SSL
 pm2 status
 
 # Python worker
-sudo systemctl status ai-task-worker
+sudo systemctl status three-tier-worker
 
 # MongoDB
 sudo systemctl status mongod
@@ -639,7 +639,7 @@ pm2 logs backend
 pm2 logs frontend
 
 # Worker logs (live)
-sudo journalctl -u ai-task-worker -f
+sudo journalctl -u three-tier-worker -f
 
 # Nginx access logs
 sudo tail -f /var/log/nginx/access.log
@@ -653,14 +653,14 @@ sudo tail -f /var/log/nginx/error.log
 ```bash
 pm2 restart backend
 pm2 restart frontend
-sudo systemctl restart ai-task-worker
+sudo systemctl restart three-tier-worker
 sudo systemctl reload nginx
 ```
 
 ### Deploy an update (pull latest code)
 
 ```bash
-cd /var/www/ai-task-platform
+cd /var/www/three-tier-application
 
 # Pull latest code
 git pull origin main
@@ -672,7 +672,7 @@ cd backend && npm ci --omit=dev && pm2 restart backend
 cd ../frontend && npm ci && npm run build && pm2 restart frontend
 
 # Restart worker (picks up Python changes automatically)
-sudo systemctl restart ai-task-worker
+sudo systemctl restart three-tier-worker
 ```
 
 ### Save PM2 process list (survives reboots)

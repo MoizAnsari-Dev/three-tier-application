@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata = {
-  title: 'AI Task Platform — Process Text at Scale',
+  title: 'Three-Tier Application — Process Text at Scale',
   description:
     'A production-grade AI task processing platform. Run text operations asynchronously with real-time status tracking.',
   keywords: 'AI, task processing, text operations, MERN stack',

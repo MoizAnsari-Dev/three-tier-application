@@ -31,7 +31,7 @@ log = logging.getLogger("worker")
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD") or None
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/ai-task-platform")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/three-tier-application")
 TASK_QUEUE = "task_queue"
 POLL_TIMEOUT = 5  # seconds for BLPOP blocking timeout
 

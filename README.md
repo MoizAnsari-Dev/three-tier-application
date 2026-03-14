@@ -1,4 +1,4 @@
-# ⚡ AI Task Processing Platform
+# ⚡ Three-Tier Application
 
 A production-grade full-stack platform built with the **MERN stack + Python worker**, containerized with Docker, orchestrated on Kubernetes, and deployed via GitOps with Argo CD.
 
@@ -34,7 +34,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for full documentation.
 ## 📁 Repository Structure
 
 ```
-ai-task-platform/           ← App repository (this repo)
+three-tier-application/           ← App repository (this repo)
 ├── backend/                ← Node.js + Express API
 │   ├── src/
 │   │   ├── config/         ← db.js, redis.js
@@ -61,7 +61,7 @@ ai-task-platform/           ← App repository (this repo)
 ├── .github/workflows/      ← CI/CD pipelines
 └── ARCHITECTURE.md         ← Architecture document
 
-ai-task-platform-infra/     ← Infrastructure repository
+three-tier-application-infra/     ← Infrastructure repository
 ├── k8s/
 │   ├── namespace.yaml
 │   ├── backend/
@@ -87,8 +87,8 @@ ai-task-platform-infra/     ← Infrastructure repository
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-task-platform.git
-cd ai-task-platform
+git clone https://github.com/YOUR_USERNAME/three-tier-application.git
+cd three-tier-application
 ```
 
 ### 2. Configure environment variables
@@ -161,7 +161,7 @@ Open http://localhost:3000 → Register → Create a task → Watch it process!
 ### 1. Update image names in manifests
 ```bash
 # Replace YOUR_DOCKERHUB_USERNAME in all deployment files
-find ai-task-platform-infra/k8s -name "deployment.yaml" \
+find three-tier-application-infra/k8s -name "deployment.yaml" \
   -exec sed -i 's/YOUR_DOCKERHUB_USERNAME/yourusername/g' {} \;
 ```
 
@@ -171,31 +171,31 @@ find ai-task-platform-infra/k8s -name "deployment.yaml" \
 echo -n "your-super-secret-jwt-key-32chars" | base64
 
 # Edit the secrets file with real values
-vim ai-task-platform-infra/k8s/secrets/app-secrets.yaml
+vim three-tier-application-infra/k8s/secrets/app-secrets.yaml
 
 # Apply secrets (do NOT commit real secret values to Git!)
-kubectl apply -f ai-task-platform-infra/k8s/secrets/app-secrets.yaml
+kubectl apply -f three-tier-application-infra/k8s/secrets/app-secrets.yaml
 ```
 
 ### 3. Deploy everything
 ```bash
 # Apply all manifests in order
-kubectl apply -f ai-task-platform-infra/k8s/namespace.yaml
-kubectl apply -f ai-task-platform-infra/k8s/configmaps/
-kubectl apply -f ai-task-platform-infra/k8s/secrets/
-kubectl apply -f ai-task-platform-infra/k8s/mongodb/
-kubectl apply -f ai-task-platform-infra/k8s/redis/
-kubectl apply -f ai-task-platform-infra/k8s/backend/
-kubectl apply -f ai-task-platform-infra/k8s/worker/
-kubectl apply -f ai-task-platform-infra/k8s/frontend/
-kubectl apply -f ai-task-platform-infra/k8s/ingress/
+kubectl apply -f three-tier-application-infra/k8s/namespace.yaml
+kubectl apply -f three-tier-application-infra/k8s/configmaps/
+kubectl apply -f three-tier-application-infra/k8s/secrets/
+kubectl apply -f three-tier-application-infra/k8s/mongodb/
+kubectl apply -f three-tier-application-infra/k8s/redis/
+kubectl apply -f three-tier-application-infra/k8s/backend/
+kubectl apply -f three-tier-application-infra/k8s/worker/
+kubectl apply -f three-tier-application-infra/k8s/frontend/
+kubectl apply -f three-tier-application-infra/k8s/ingress/
 ```
 
 ### 4. Verify deployment
 ```bash
-kubectl get all -n ai-task-platform
-kubectl get hpa -n ai-task-platform
-kubectl logs -l app=worker -n ai-task-platform --tail=20
+kubectl get all -n three-tier-application
+kubectl get hpa -n three-tier-application
+kubectl logs -l app=worker -n three-tier-application --tail=20
 ```
 
 ---
@@ -220,7 +220,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 ### Deploy the Application
 ```bash
 # Update the repoURL in argocd/application.yaml first!
-kubectl apply -f ai-task-platform-infra/argocd/application.yaml
+kubectl apply -f three-tier-application-infra/argocd/application.yaml
 ```
 
 Argo CD will now:
@@ -238,7 +238,7 @@ Add these secrets to your GitHub repository (`Settings → Secrets`):
 |--------|-------------|
 | `DOCKERHUB_USERNAME` | Your Docker Hub username |
 | `DOCKERHUB_TOKEN` | Docker Hub access token |
-| `INFRA_REPO` | `YOUR_USERNAME/ai-task-platform-infra` |
+| `INFRA_REPO` | `YOUR_USERNAME/three-tier-application-infra` |
 | `INFRA_REPO_TOKEN` | GitHub PAT with repo write access |
 
 ### CI/CD Flow
@@ -268,17 +268,17 @@ Argo CD detects infra repo change → Rolling deploy to cluster
 
 ```bash
 # Watch worker autoscaling
-kubectl get hpa worker-hpa -n ai-task-platform -w
+kubectl get hpa worker-hpa -n three-tier-application -w
 
 # View worker logs
-kubectl logs -l app=worker -n ai-task-platform -f
+kubectl logs -l app=worker -n three-tier-application -f
 
 # Check Redis queue length
-kubectl exec -it deploy/redis -n ai-task-platform -- redis-cli llen task_queue
+kubectl exec -it deploy/redis -n three-tier-application -- redis-cli llen task_queue
 
 # MongoDB task stats
-kubectl exec -it deploy/mongodb -n ai-task-platform -- \
-  mongosh ai-task-platform --eval \
+kubectl exec -it deploy/mongodb -n three-tier-application -- \
+  mongosh three-tier-application --eval \
   'db.tasks.aggregate([{$group:{_id:"$status",count:{$sum:1}}}])'
 ```
 
@@ -287,7 +287,7 @@ kubectl exec -it deploy/mongodb -n ai-task-platform -- \
 ## 📧 Submission Checklist
 
 - [x] Application repository (this repo)
-- [x] Infrastructure repository (`ai-task-platform-infra`)
+- [x] Infrastructure repository (`three-tier-application-infra`)
 - [x] Multi-stage Dockerfiles (frontend, backend, worker)
 - [x] docker-compose.yml for local development
 - [x] Kubernetes manifests (namespace, deployments, services, ingress, HPA, ConfigMaps, Secrets)

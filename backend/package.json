@@ -1,7 +1,7 @@
 {
-  "name": "ai-task-platform-backend",
+  "name": "three-tier-application-backend",
   "version": "1.0.0",
-  "description": "AI Task Processing Platform - Backend API",
+  "description": "Three-Tier Application - Backend API",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

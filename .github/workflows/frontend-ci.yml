@@ -12,7 +12,7 @@ on:
       - 'frontend/**'
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/ai-task-frontend
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/three-tier-frontend
 
 jobs:
   lint:
@@ -98,7 +98,7 @@ jobs:
 
       - name: Update frontend image tag
         run: |
-          NEW_TAG="${{ secrets.DOCKERHUB_USERNAME }}/ai-task-frontend:sha-$(echo ${{ github.sha }} | cut -c1-7)"
+          NEW_TAG="${{ secrets.DOCKERHUB_USERNAME }}/three-tier-frontend:sha-$(echo ${{ github.sha }} | cut -c1-7)"
           yq e -i '.spec.template.spec.containers[0].image = "'$NEW_TAG'"' \
             infra/k8s/frontend/deployment.yaml
           echo "Updated frontend image to: $NEW_TAG"

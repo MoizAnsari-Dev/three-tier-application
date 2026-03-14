@@ -12,7 +12,7 @@ on:
       - 'worker/**'
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/ai-task-worker
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/three-tier-worker
 
 jobs:
   lint:
@@ -95,7 +95,7 @@ jobs:
 
       - name: Update worker image tag
         run: |
-          NEW_TAG="${{ secrets.DOCKERHUB_USERNAME }}/ai-task-worker:sha-$(echo ${{ github.sha }} | cut -c1-7)"
+          NEW_TAG="${{ secrets.DOCKERHUB_USERNAME }}/three-tier-worker:sha-$(echo ${{ github.sha }} | cut -c1-7)"
           yq e -i '.spec.template.spec.containers[0].image = "'$NEW_TAG'"' \
             infra/k8s/worker/deployment.yaml
           echo "Updated worker image to: $NEW_TAG"
