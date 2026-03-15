@@ -1,7 +1,27 @@
 # 🖥️ Three-Tier Application — Bare Metal Linux Server Deployment
 
-> Deploy on a fresh **Ubuntu 22.04 / 24.04** server without Docker
+> Deploy on a fresh **Linux** server without Docker
+---
+## 🎯 Architecture on the Server
 
+```
+Internet
+    │
+    ▼
+ Nginx :80/:443
+    │
+    ├── /api/*  → Backend (Node.js) :5000
+    │               │
+    │               ├── MongoDB :27017
+    │               └── Redis   :6379
+    │
+    └── /*      → Frontend (Next.js) :3000
+
+                Python Worker
+                    │
+                    ├── Redis   :6379  (reads tasks)
+                    └── MongoDB :27017 (writes results)
+```
 ---
 
 ## 📋 Table of Contents
@@ -431,78 +451,40 @@ upstream frontend_app {
     server 127.0.0.1:3000;
 }
 
-# ── HTTP → HTTPS redirect (fill in after SSL setup) ──
+
 server {
     listen 80;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name _;
 
-    # Let's Encrypt challenge (needed for SSL step)
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    # Redirect everything else to HTTPS
+    # Frontend
     location / {
-        return 301 https://$host$request_uri;
-    }
-}
-
-# ── Main HTTPS server ─────────────────────────────
-server {
-    listen 443 ssl http2;
-    server_name yourdomain.com www.yourdomain.com;
-
-    # SSL (filled in by certbot in Step 16)
-    # ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
-    add_header Referrer-Policy "strict-origin-when-cross-origin";
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript;
-
-    # ── Route /api/* → Backend (port 5000) ──────
-    location /api/ {
-        proxy_pass http://backend_api;
+        proxy_pass http://frontend_app;
         proxy_http_version 1.1;
-        proxy_set_header Host              $host;
-        proxy_set_header X-Real-IP         $remote_addr;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
     }
 
-    # ── Route /health → Backend health check ────
-    location /health {
-        proxy_pass http://backend_api;
+    # Frontend static files
+    location /_next/ {
+        proxy_pass http://frontend_app;
+        proxy_http_version 1.1;
         proxy_set_header Host $host;
     }
 
-    # ── Route everything else → Frontend (port 3000) ──
-    location / {
-        proxy_pass http://frontend_app;
+    # Backend API
+    location /api/ {
+        proxy_pass http://backend_api;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade           $http_upgrade;
-        proxy_set_header Connection        "upgrade";
-        proxy_set_header Host              $host;
-        proxy_set_header X-Real-IP         $remote_addr;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
 
-    # ── Next.js static assets (long cache) ──────
-    location /_next/static/ {
-        proxy_pass http://frontend_app;
-        proxy_cache_bypass $http_upgrade;
-        add_header Cache-Control "public, max-age=31536000, immutable";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 }
-```
 
-> Replace `yourdomain.com` with your actual domain.
+```
 
 ```bash
 # Enable the site
@@ -518,9 +500,6 @@ sudo nginx -t
 # Reload Nginx
 sudo systemctl reload nginx
 ```
-
-> ⚠️ If you don't have a domain yet, comment out the HTTPS server block and use only the HTTP → backend/frontend proxy in the port 80 block.
-
 ---
 
 ## 15. Configure Firewall (UFW)
@@ -623,7 +602,7 @@ Expected: `{"success": true, "token": "eyJ...", "user": {...}}`
 
 ### Open in Browser
 
-Navigate to `https://yourdomain.com` — the TaskFlow login page should load.
+Navigate to ` https://yourdomain.com or IP` — the TaskFlow login page should load.
 
 ---
 
@@ -691,28 +670,6 @@ df -h             # disk usage
 
 ---
 
-## 🎯 Architecture on the Server
-
-```
-Internet
-    │
-    ▼
- Nginx :80/:443
-    │
-    ├── /api/*  → Backend (Node.js) :5000
-    │               │
-    │               ├── MongoDB :27017
-    │               └── Redis   :6379
-    │
-    └── /*      → Frontend (Next.js) :3000
-
-                Python Worker
-                    │
-                    ├── Redis   :6379  (reads tasks)
-                    └── MongoDB :27017 (writes results)
-```
-
----
 
 > [!IMPORTANT]
 > Always change the placeholder passwords (`CHANGE_THIS_*`) before going live. Never use the default values.
