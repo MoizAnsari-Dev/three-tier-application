@@ -15,21 +15,7 @@ const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001')
-        .split(',').map(o => o.trim());
-      // Allow requests with no origin (curl, mobile apps) or matching origins
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // In dev, allow all; tighten in production
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors());
 
 
 // Body parsing
