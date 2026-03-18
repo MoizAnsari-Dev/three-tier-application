@@ -671,78 +671,25 @@ df -h             # disk usage
 
 ---
 
-## 19. Docker Compose
+## 19. Docker Compose (Quick Start)
 
-### Install Docker
+For a dedicated, comprehensive guide on deploying with Docker Compose (including architecture, scaling, and production hardening), see:
 
+👉 **[DOCKER_DEPLOY.md](./DOCKER_DEPLOY.md)**
+
+### Quick Start
 ```bash
-# Add Docker's official GPG key
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu 
-$(. /etc/os-release && echo "$VERSION_CODENAME") stable" | 
-sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-
-# Install Docker Engine
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Add your user to the docker group
-sudo usermod -aG docker $USER
-
-# Verify
-docker run hello-world
-```
-
-### Install Docker Compose
-
-```bash
-# Install Docker Compose
-sudo apt-get install docker-compose-plugin
-
-# Verify
-docker compose version  
-```
-
-### Deploy the application using docker-compose
-
-```bash
-# Clone the repository
+# Clone and enter directory
 git clone https://github.com/MoizAnsari-Dev/three-tier-application.git
-
-# Navigate to the project directory
 cd three-tier-application
 
-# Create a .env file from the template
+# Setup Env
 cp .env.example .env
+nano .env # Set JWT_SECRET, CORS_ORIGIN, etc.
 
-# Edit the .env file with your configuration
-nano .env
-
-# Build and start the application
+# Start
 docker compose up -d --build
-
-# Check the logs
-docker compose logs -f
 ```
-### Stop the application
-
-```bash
-# Stop the application
-docker compose down
-```
-
-### Remove the application
-
-```bash
-# Remove the application
-docker compose down -v
-``` 
 
 > [!IMPORTANT]
 > Always change the placeholder passwords (`CHANGE_THIS_*`) before going live. Never use the default values.

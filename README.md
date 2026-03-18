@@ -152,6 +152,15 @@ Open http://localhost:3000 → Register → Create a task → Watch it process!
 
 ---
 
+## 🚀 Server Deployment Guides
+
+For deploying on a standard Linux server (Ubuntu/Debian) without full Kubernetes:
+
+- **[Docker Compose Deployment](./DOCKER_DEPLOY.md)** (Recommended) — Quick and isolated using Docker Compose.
+- **[Bare Metal Deployment](./BARE_METAL_DEPLOY.md)** — Manual installation of Node.js, Python, MongoDB, and Redis.
+
+---
+
 ## ☸️ Kubernetes Deployment
 
 ### Prerequisites
