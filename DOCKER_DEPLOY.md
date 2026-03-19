@@ -4,6 +4,53 @@ This guide provides step-by-step instructions to deploy the **Three-Tier Applica
 
 ---
 
+## What is this Application?
+
+**TaskFlow** is a simple task management web application. Think of it like a personal to-do list that runs on a server and can be used by multiple users at the same time.
+
+Here is what it does in plain English:
+
+- **Users can register and log in** — each user has their own secure account.
+- **Users can create, view, and delete tasks** — tasks are stored in a database and always available.
+- **Background processing** — when a task is created, a background Worker automatically processes it (e.g., sends notifications or runs jobs).
+
+### The Application has 3 Main Layers:
+
+| Layer | Technology | What it does |
+| :--- | :--- | :--- |
+| **Frontend** | Next.js (React) | The website the user sees and interacts with |
+| **Backend** | Node.js (Express) | Handles logins, tasks, and talks to the database |
+| **Data Layer** | MongoDB + Redis | MongoDB stores user data; Redis manages background job queues |
+
+### Supporting Services — Redis & Python Worker
+
+These two services work together to handle **background task processing**.
+
+#### How it works (Step by Step):
+
+1. **User creates a task** — e.g., submitting the text `"hello world"` with the operation `"uppercase"`.
+2. **Backend pushes a job to Redis** — Redis acts like a waiting queue (like a ticket line). The job sits there waiting to be picked up.
+3. **Python Worker picks up the job** — the Worker is always watching the Redis queue. As soon as a job arrives, it grabs it.
+4. **Worker processes the task** — it runs the requested operation on the text:
+   - `uppercase` → `"HELLO WORLD"`
+   - `lowercase` → `"hello world"`
+   - `reverse` → `"dlrow olleh"`
+   - `word_count` → `"Word count: 2"`
+5. **Worker updates MongoDB** — it saves the result and marks the task as `success` or `failed` in the database.
+6. **User sees the result** — the frontend fetches the updated task from the backend.
+
+#### Why use a Queue (Redis) instead of doing it directly?
+
+| Direct Processing | Queue + Worker (our approach) |
+| :--- | :--- |
+| Backend does everything | Backend just adds a job to the queue and responds immediately |
+| User waits for the task to finish | User gets an instant response while Worker runs in the background |
+| Heavy tasks can slow down the API | API stays fast; Workers handle the load |
+| Can't easily scale | Can run multiple Worker instances in parallel |
+
+
+---
+
 ## Architecture Overview
 
 ```text

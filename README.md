@@ -1,307 +1,246 @@
-# ⚡ Three-Tier Application
+# Three-Tier Application — Docker Compose Deployment Guide
 
-A production-grade full-stack platform built with the **MERN stack + Python worker**, containerized with Docker, orchestrated on Kubernetes, and deployed via GitOps with Argo CD.
-
-## 📋 Features
-
-- 🔐 **JWT Authentication** — register, login, protected routes
-- ⚡ **Async Task Processing** — Redis queue + Python worker
-- 📊 **Real-time Status Tracking** — pending → running → success/failed
-- 📜 **Task Logs** — timestamped logs for every task
-- 🔠 **4 Operations** — uppercase, lowercase, reverse, word_count
-- 🛡️ **Security** — bcrypt, helmet, rate limiting, non-root containers
-- ☸️ **Kubernetes Ready** — HPA, ingress, probes, namespaces
-- 🔄 **GitOps** — Argo CD auto-sync on every commit
+This guide provides step-by-step instructions to deploy the **Three-Tier Application** using **Docker Compose** on a Linux server. Traffic is managed securely through an internal **Nginx Reverse Proxy** — no backend or frontend ports are exposed publicly.
 
 ---
 
-## 🏗️ Architecture
+## What is this Application?
 
-```
-Browser → Next.js Frontend → Express API → MongoDB
-                                      ↓
-                                   Redis Queue
-                                      ↓
-                              Python Worker (1–20 pods)
-                                      ↓
-                                   MongoDB (update result)
-```
+**TaskFlow** is a simple task management web application. Think of it like a personal to-do list that runs on a server and can be used by multiple users at the same time.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for full documentation.
+Here is what it does in plain English:
 
----
+- **Users can register and log in** — each user has their own secure account.
+- **Users can create, view, and delete tasks** — tasks are stored in a database and always available.
+- **Background processing** — when a task is created, a background Worker automatically processes it (e.g., sends notifications or runs jobs).
 
-## 📁 Repository Structure
+### The Application has 3 Main Layers:
 
-```
-three-tier-application/           ← App repository (this repo)
-├── backend/                ← Node.js + Express API
-│   ├── src/
-│   │   ├── config/         ← db.js, redis.js
-│   │   ├── middleware/     ← auth.js, rateLimiter.js
-│   │   ├── models/         ← User.js, Task.js
-│   │   ├── routes/         ← auth.js, tasks.js
-│   │   ├── utils/          ← logger.js
-│   │   └── index.js
-│   └── Dockerfile
-├── worker/                 ← Python background worker
-│   ├── worker.py
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/               ← Next.js 14 frontend
-│   ├── app/                ← App Router pages
-│   │   ├── page.js         ← Landing page
-│   │   ├── login/          ← Login
-│   │   ├── register/       ← Register
-│   │   ├── dashboard/      ← Task dashboard
-│   │   └── tasks/          ← Create + Detail pages
-│   ├── lib/                ← api.js, auth.js
-│   └── Dockerfile
-├── docker-compose.yml      ← Local development
-├── .github/workflows/      ← CI/CD pipelines
-└── ARCHITECTURE.md         ← Architecture document
+| Layer | Technology | What it does |
+| :--- | :--- | :--- |
+| **Frontend** | Next.js (React) | The website the user sees and interacts with |
+| **Backend** | Node.js (Express) | Handles logins, tasks, and talks to the database |
+| **Data Layer** | MongoDB + Redis | MongoDB stores user data; Redis manages background job queues |
 
-three-tier-application-infra/     ← Infrastructure repository
-├── k8s/
-│   ├── namespace.yaml
-│   ├── backend/
-│   ├── worker/             ← Includes HPA
-│   ├── frontend/
-│   ├── mongodb/            ← Includes PVC
-│   ├── redis/
-│   ├── configmaps/
-│   ├── secrets/
-│   └── ingress/
-└── argocd/
-    └── application.yaml
-```
+### Supporting Services — Redis & Python Worker
+
+These two services work together to handle **background task processing**.
+
+#### How it works (Step by Step):
+
+1. **User creates a task** — e.g., submitting the text `"hello world"` with the operation `"uppercase"`.
+2. **Backend pushes a job to Redis** — Redis acts like a waiting queue (like a ticket line). The job sits there waiting to be picked up.
+3. **Python Worker picks up the job** — the Worker is always watching the Redis queue. As soon as a job arrives, it grabs it.
+4. **Worker processes the task** — it runs the requested operation on the text:
+   - `uppercase` → `"HELLO WORLD"`
+   - `lowercase` → `"hello world"`
+   - `reverse` → `"dlrow olleh"`
+   - `word_count` → `"Word count: 2"`
+5. **Worker updates MongoDB** — it saves the result and marks the task as `success` or `failed` in the database.
+6. **User sees the result** — the frontend fetches the updated task from the backend.
+
+#### Why use a Queue (Redis) instead of doing it directly?
+
+| Direct Processing | Queue + Worker (our approach) |
+| :--- | :--- |
+| Backend does everything | Backend just adds a job to the queue and responds immediately |
+| User waits for the task to finish | User gets an instant response while Worker runs in the background |
+| Heavy tasks can slow down the API | API stays fast; Workers handle the load |
+| Can't easily scale | Can run multiple Worker instances in parallel |
+
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Architecture Overview
 
-### Prerequisites
-- Docker & Docker Compose
-- Node.js 20+ (optional, for local dev without Docker)
-- Python 3.12+ (optional)
+```text
+       Internet (Port 80)
+             │
+             ▼
+    ┌────────────────────── Docker Compose Network ──────────────────────┐
+    │                                                                    │
+    │  ┌──────────────┐         ┌──────────────┐      ┌──────────────┐   │
+    │  │    Nginx     │──┬────▶│   Frontend   │      │   MongoDB    │   │
+    │  │  (Port 80)   │  │      │   (Next.js)  │      │  (Private)   │   │
+    │  └──────────────┘  │      └──────────────┘      └──────────────┘   │
+    │         ▲          │                                    ▲          │
+    │         │          │                                    │          │
+    │   (User Traffic)   └─────▶┌──────────────┐             │          │
+    │   /api/* routed            │   Backend    │─────────────┘          │
+    │   to backend               │  (Node.js)   │                        │
+    │                            └──────────────┘                        │
+    │                                   │                                │
+    │                           ┌──────────────┐                         │
+    │                           │    Redis     │◀─────────────┐         │
+    │                           │  (Private)   │               │         │
+    │                           └──────────────┘               │         │
+    │                                                   ┌──────────────┐ │
+    │                                                   │    Worker    │ │
+    │                                                   │   (Python)   │ │
+    │                                                   └──────────────┘ │
+    └────────────────────────────────────────────────────────────────────┘
+```
 
-### 1. Clone the repository
+### Key Design Decisions
+
+| Decision | Reason |
+| :--- | :--- |
+| **Nginx as sole entry point** | Only Port 80 is exposed publicly |
+| **Relative API pathing** | Frontend calls `/api/...` — no hardcoded IPs needed |
+| **Backend & Frontend ports closed** | Traffic only flows via Nginx internally |
+| **MongoDB & Redis private** | Never accessible from outside the Docker network |
+
+---
+
+## Prerequisites
+
+- **OS**: Ubuntu 22.04+ (or any modern Linux distro)
+- **Resources**: 2 vCPU, 4GB RAM recommended
+- **Docker Engine** installed
+
+### Install Docker (Ubuntu)
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/three-tier-application.git
+sudo apt-get update
+sudo curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+sudo chmod 666 /var/run/docker.sock
+```
+
+---
+
+## Deployment Steps
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/MoizAnsari-Dev/three-tier-application.git
 cd three-tier-application
 ```
 
-### 2. Configure environment variables
+### 2. Configure Environment Variables
+
 ```bash
-# Copy and edit the example env file
-cp backend/.env.example backend/.env
-# Edit JWT_SECRET to a strong random string (min 32 chars)
+cp .env.example .env
+nano .env
 ```
 
-### 3. Start all services with Docker Compose
+**Key variables to set:**
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `JWT_SECRET` | Secret key for auth tokens | `openssl rand -base64 32` |
+| `NODE_ENV` | Application mode | `production` |
+| `MONGO_URI` | MongoDB connection string | `mongodb://mongo:27017/three-tier-application` |
+
+> [!IMPORTANT]
+> There is **no** `NEXT_PUBLIC_API_URL` required. The frontend uses **relative paths** (`/api/...`) which Nginx automatically proxies to the backend. This keeps all server IPs private.
+
+### 3. Build and Start
+
 ```bash
-docker compose up --build -d
+docker compose up -d --build
 ```
 
-This starts:
-| Service | Port | Description |
-|---------|------|-------------|
-| Frontend | http://localhost:3000 | Next.js UI |
-| Backend API | http://localhost:5000 | Express REST API |
-| Worker (×2) | — | Python background processors |
-| MongoDB | localhost:27017 | Database |
-| Redis | localhost:6379 | Task queue |
+### 4. Verify Services
 
-### 4. Check service health
 ```bash
 docker compose ps
-curl http://localhost:5000/health
 ```
 
-### 5. Your app is running!
-Open http://localhost:3000 → Register → Create a task → Watch it process!
+| Service | Public Port | Description |
+| :--- | :--- | :--- |
+| **Nginx** | `80` | Only public entry point |
+| **Frontend** | — | Private (via Nginx proxy) |
+| **Backend** | — | Private (via Nginx proxy) |
+| **MongoDB** | — | Private database |
+| **Redis** | — | Private queue |
+| **Worker** | — | Background task processor |
 
 ---
 
-## 🧪 API Reference
+## Management & Maintenance
 
-### Auth Endpoints
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/register` | ❌ | Register a new user |
-| POST | `/api/auth/login` | ❌ | Login, returns JWT |
-| GET | `/api/auth/me` | ✅ | Get current user |
-
-### Task Endpoints
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/tasks` | ✅ | Create & queue a task |
-| GET | `/api/tasks` | ✅ | List user's tasks (paginated) |
-| GET | `/api/tasks/:id` | ✅ | Get task detail + logs |
-| DELETE | `/api/tasks/:id` | ✅ | Delete a task |
-
-### Task Operations
-| Operation | Description |
-|-----------|-------------|
-| `uppercase` | Convert text to UPPERCASE |
-| `lowercase` | Convert text to lowercase |
-| `reverse` | Reverse the string character by character |
-| `word_count` | Count total words in the text |
-
----
-
-## 🚀 Server Deployment Guides
-
-For deploying on a standard Linux server (Ubuntu/Debian) without full Kubernetes:
-
-- **[Docker Compose Deployment](./DOCKER_DEPLOY.md)** (Recommended) — Quick and isolated using Docker Compose.
-- **[Bare Metal Deployment](./BARE_METAL_DEPLOY.md)** — Manual installation of Node.js, Python, MongoDB, and Redis.
-
----
-
-## ☸️ Kubernetes Deployment
-
-### Prerequisites
-- kubectl configured for your cluster (k3s, EKS, GKE, etc.)
-- Docker Hub account with built images
-
-### 1. Update image names in manifests
+### View Logs
 ```bash
-# Replace YOUR_DOCKERHUB_USERNAME in all deployment files
-find three-tier-application-infra/k8s -name "deployment.yaml" \
-  -exec sed -i 's/YOUR_DOCKERHUB_USERNAME/yourusername/g' {} \;
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f backend
 ```
 
-### 2. Create secrets
+### Update the Application
 ```bash
-# Encode your JWT secret
-echo -n "your-super-secret-jwt-key-32chars" | base64
-
-# Edit the secrets file with real values
-vim three-tier-application-infra/k8s/secrets/app-secrets.yaml
-
-# Apply secrets (do NOT commit real secret values to Git!)
-kubectl apply -f three-tier-application-infra/k8s/secrets/app-secrets.yaml
+git pull origin main
+docker compose up -d --build
 ```
 
-### 3. Deploy everything
+### Scale the Worker
 ```bash
-# Apply all manifests in order
-kubectl apply -f three-tier-application-infra/k8s/namespace.yaml
-kubectl apply -f three-tier-application-infra/k8s/configmaps/
-kubectl apply -f three-tier-application-infra/k8s/secrets/
-kubectl apply -f three-tier-application-infra/k8s/mongodb/
-kubectl apply -f three-tier-application-infra/k8s/redis/
-kubectl apply -f three-tier-application-infra/k8s/backend/
-kubectl apply -f three-tier-application-infra/k8s/worker/
-kubectl apply -f three-tier-application-infra/k8s/frontend/
-kubectl apply -f three-tier-application-infra/k8s/ingress/
+docker compose up -d --scale worker=5
 ```
 
-### 4. Verify deployment
+### Stop Services
 ```bash
-kubectl get all -n three-tier-application
-kubectl get hpa -n three-tier-application
-kubectl logs -l app=worker -n three-tier-application --tail=20
+# Stop containers
+docker compose stop
+
+# Stop and remove containers
+docker compose down
+
+# Stop and remove containers AND volumes (DELETES DATABASE)
+docker compose down -v
 ```
 
 ---
 
-## 🔄 GitOps with Argo CD
+## Security & Hardening
 
-### Install Argo CD
-```bash
-kubectl create namespace argocd
-kubectl apply -n argocd \
-  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+### 1. Firewall (UFW)
 
-# Get the initial admin password
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath="{.data.password}" | base64 -d
-
-# Port-forward to access the UI
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-# Visit: https://localhost:8080 (admin / password above)
-```
-
-### Deploy the Application
-```bash
-# Update the repoURL in argocd/application.yaml first!
-kubectl apply -f three-tier-application-infra/argocd/application.yaml
-```
-
-Argo CD will now:
-1. Watch the infra repository for changes
-2. Auto-sync on every commit
-3. Self-heal if someone manually changes the cluster
-
----
-
-## 🔧 GitHub Actions CI/CD Setup
-
-Add these secrets to your GitHub repository (`Settings → Secrets`):
-
-| Secret | Description |
-|--------|-------------|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username |
-| `DOCKERHUB_TOKEN` | Docker Hub access token |
-| `INFRA_REPO` | `YOUR_USERNAME/three-tier-application-infra` |
-| `INFRA_REPO_TOKEN` | GitHub PAT with repo write access |
-
-### CI/CD Flow
-```
-Push to main branch
-    ↓
-GitHub Actions: Lint → Build Docker image → Push to Docker Hub
-    ↓
-Auto-update image tag in infra repo (via yq + git push)
-    ↓
-Argo CD detects infra repo change → Rolling deploy to cluster
-```
-
----
-
-## 🛡️ Security Notes
-
-- **Never commit `.env` files** — use `.env.example` only
-- **Rotate JWT_SECRET** regularly in production
-- **Use Sealed Secrets** or Vault for K8s secrets in production
-- All containers run as **non-root users**
-- Rate limiting: 20 req/15min (auth), 100 req/min (API)
-
----
-
-## 📊 Monitoring
+Only expose SSH and HTTP. Everything else is handled privately by Docker.
 
 ```bash
-# Watch worker autoscaling
-kubectl get hpa worker-hpa -n three-tier-application -w
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw enable
+```
 
-# View worker logs
-kubectl logs -l app=worker -n three-tier-application -f
+> [!NOTE]
+> Ports 3000, 5000, 27017, and 6379 do **not** need to be open. They are secured inside the private Docker network.
 
-# Check Redis queue length
-kubectl exec -it deploy/redis -n three-tier-application -- redis-cli llen task_queue
+### 2. AWS / Cloud Security Group
 
-# MongoDB task stats
-kubectl exec -it deploy/mongodb -n three-tier-application -- \
-  mongosh three-tier-application --eval \
-  'db.tasks.aggregate([{$group:{_id:"$status",count:{$sum:1}}}])'
+If deploying on EC2 or similar, ensure your **Inbound Rules** allow:
+
+| Type | Port | Source |
+| :--- | :--- | :--- |
+| SSH | 22 | Your IP |
+| HTTP | 80 | 0.0.0.0/0 |
+
+### 3. Enable SSL / HTTPS with Certbot
+
+```bash
+sudo apt install python3-certbot-nginx
+sudo certbot --nginx -d yourdomain.com
 ```
 
 ---
 
-## 📧 Submission Checklist
+## Troubleshooting
 
-- [x] Application repository (this repo)
-- [x] Infrastructure repository (`three-tier-application-infra`)
-- [x] Multi-stage Dockerfiles (frontend, backend, worker)
-- [x] docker-compose.yml for local development
-- [x] Kubernetes manifests (namespace, deployments, services, ingress, HPA, ConfigMaps, Secrets)
-- [x] Argo CD Application manifest
-- [x] GitHub Actions CI/CD (lint → build → push → update infra)
-- [x] Architecture document (ARCHITECTURE.md)
-- [ ] Live deployed URL (deploy to your cluster)
-- [ ] Argo CD dashboard screenshot (take after deployment)
+**Q: "Login failed" or API not responding?**
+- Check Nginx is running: `docker compose ps`
+- Check backend logs: `docker compose logs -f backend`
+
+**Q: Cannot reach the site on port 80?**
+- Check your Cloud Security Group allows **Inbound HTTP (Port 80)**.
+
+**Q: Database connection issues?**
+- Ensure `MONGO_URI` uses `mongo` as the hostname (the internal Docker service name), not `localhost`.
+
+**Q: Changes not reflected after code update?**
+- Always run `docker compose up -d --build` after pulling new code. The `--build` flag is required to rebuild Docker images.
