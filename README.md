@@ -1,4 +1,4 @@
-# Three-Tier Application — Docker Compose Deployment Guide
+# Three-Tier Application — Using Docker Deployment Guide
 
 This guide provides step-by-step instructions to deploy the **Three-Tier Application** using **Docker Compose** on a Linux server. Traffic is managed securely through an internal **Nginx Reverse Proxy** — no backend or frontend ports are exposed publicly.
 
@@ -186,7 +186,7 @@ docker compose up -d --scale worker=5
 ### Stop Services
 ```bash
 # Stop containers
-docker compose stop
+docker compose stopPending
 
 # Stop and remove containers
 docker compose down

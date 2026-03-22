@@ -1,6 +1,3 @@
-
-
-
 services:
   # ── MongoDB ──────────────────────────────────────────────────
   mongo:
@@ -16,7 +13,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +32,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +45,7 @@ services:
       dockerfile: Dockerfile
     container_name: three-tier-backend
     restart: unless-stopped
-# Ports removed to force traffic through Nginx (Internal 5000)
+    # Ports removed to force traffic through Nginx (Internal 5000)
     environment:
       NODE_ENV: production
       PORT: 5000
@@ -59,7 +56,7 @@ services:
       JWT_EXPIRES_IN: 7d
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
       LOG_LEVEL: ${LOG_LEVEL:-info}
-# Removed direct port mapping to force traffic through Nginx
+    # Removed direct port mapping to force traffic through Nginx
     networks:
       - app-network
     depends_on:
@@ -68,7 +65,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:5000/health" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -96,7 +93,7 @@ services:
       backend:
         condition: service_healthy
     deploy:
-      replicas: 2   # run 2 worker instances locally
+      replicas: 2 # run 2 worker instances locally
 
   # ── Frontend ─────────────────────────────────────────────────
   frontend:
@@ -112,13 +109,11 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1:3000/" ]
       interval: 20s
       timeout: 10s
       retries: 5
       start_period: 30s
-
-    
 
   # ── Reverse Proxy (Nginx) ────────────────────────────────────
   nginx:
