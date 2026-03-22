@@ -230,7 +230,95 @@ sudo certbot --nginx -d yourdomain.com
 
 ---
 
+## Monitoring & Observability
+
+The monitoring stack is a **separate Docker Compose file** (`monitoring/docker-compose.monitoring.yml`) that runs alongside the main application. It gives you full visibility into your server and all running containers.
+
+### Services
+
+| Container | Port | What it monitors |
+| :--- | :--- | :--- |
+| **Prometheus** | `9090` | Collects and stores all metrics |
+| **Grafana** | `3001` | Visualizes metrics in dashboards |
+| **cAdvisor** | `8080` | Per-container CPU, RAM, network, disk |
+| **Node Exporter** | `9100` | Host server: CPU, RAM, Disk, Network |
+
+### Start the Monitoring Stack
+
+First make sure your main app is running, then start monitoring:
+
+```bash
+# Start the main app (if not already running)
+docker compose up -d
+
+# Start the monitoring stack
+cd monitoring
+docker compose -f docker-compose.monitoring.yml up -d
+```
+
+Verify all 4 containers are running:
+
+```bash
+docker compose -f docker-compose.monitoring.yml ps
+```
+
+### Access the Dashboards
+
+| Tool | URL | Login |
+| :--- | :--- | :--- |
+| **Grafana** | `http://YOUR_SERVER_IP:3001` | admin / admin |
+| **Prometheus** | `http://YOUR_SERVER_IP:9090` | None |
+| **cAdvisor** | `http://YOUR_SERVER_IP:8080` | None |
+
+> [!IMPORTANT]
+> If using AWS EC2 or a cloud provider, open ports **3001**, **8080**, and **9090** in your Security Group **temporarily** while setting up. You can close them after setup or keep them restricted to your own IP.
+
+### Connect Grafana to Prometheus
+
+1. Open Grafana at `http://YOUR_SERVER_IP:3001`
+2. Go to **☰ Menu → Connections → Data Sources**
+3. Click **Add data source → Prometheus**
+4. Set URL to: `http://prometheus:9090`
+5. Click **Save & Test** — should show green
+
+### Import Dashboards
+
+Go to **Dashboards → Import**, enter the Dashboard ID, click **Load → Import**:
+
+| Dashboard | ID | Shows |
+| :--- | :--- | :--- |
+| **Docker Containers (cAdvisor)** | `14282` | CPU/RAM/Network per container |
+| **Host Server Full** | `1860` | Server-level CPU, RAM, Disk, Network |
+
+### Useful Prometheus Queries
+
+Open `http://YOUR_SERVER_IP:9090` → **Graph** tab and try:
+
+```promql
+# CPU usage per container (%)
+rate(container_cpu_usage_seconds_total{name!=""}[1m]) * 100
+
+# RAM usage per container (bytes)
+container_memory_usage_bytes{name!=""}
+
+# Server CPU usage (%)
+100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)
+
+# Server free RAM (bytes)
+node_memory_MemAvailable_bytes
+```
+
+### Stop the Monitoring Stack
+
+```bash
+cd monitoring
+docker compose -f docker-compose.monitoring.yml down
+```
+
+---
+
 ## Troubleshooting
+
 
 **Q: "Login failed" or API not responding?**
 - Check Nginx is running: `docker compose ps`
